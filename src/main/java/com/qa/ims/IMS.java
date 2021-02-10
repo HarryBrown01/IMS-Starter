@@ -8,9 +8,11 @@ import com.qa.ims.controller.CrudController;
 import com.qa.ims.controller.CustomerController;
 import com.qa.ims.controller.ItemController;
 import com.qa.ims.controller.OrderController;
+import com.qa.ims.controller.Order_ItemController;
 import com.qa.ims.persistence.dao.CustomerDAO;
 import com.qa.ims.persistence.dao.ItemDAO;
 import com.qa.ims.persistence.dao.OrderDAO;
+import com.qa.ims.persistence.dao.Order_ItemDAO;
 import com.qa.ims.persistence.domain.Domain;
 import com.qa.ims.utils.DBUtils;
 import com.qa.ims.utils.Utils;
@@ -22,6 +24,7 @@ public class IMS {
 	private final CustomerController customers;
 	private final ItemController items;
 	private final OrderController orders;
+	private final Order_ItemController order_items;
 	private final Utils utils;
 
 	public IMS() {
@@ -29,9 +32,11 @@ public class IMS {
 		final CustomerDAO custDAO = new CustomerDAO();
 		final ItemDAO ItemDAO = new ItemDAO();
 		final OrderDAO OrderDAO = new OrderDAO();
+		final Order_ItemDAO Order_itemDAO = new Order_ItemDAO();
 		this.customers = new CustomerController(custDAO, utils);
 		this.items = new ItemController(ItemDAO, utils);
 		this.orders = new OrderController(OrderDAO, utils);
+		this.order_items = new Order_ItemController(Order_itemDAO, utils);
 	}
 
 	public void imsSystem() {
@@ -64,6 +69,9 @@ public class IMS {
 				break;
 			case ORDER:
 				active = this.orders;
+				break;
+			case ORDER_ITEM:
+				active = this.order_items;
 				break;
 			case STOP:
 				return;

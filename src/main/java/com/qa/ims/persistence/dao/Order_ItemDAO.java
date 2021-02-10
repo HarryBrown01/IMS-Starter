@@ -7,17 +7,16 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Scanner;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.qa.ims.persistence.domain.Order_Item;
 import com.qa.ims.utils.DBUtils;
-import com.qa.ims.utils.Utils;
 
 public class Order_ItemDAO implements Dao<Order_Item> {
 	public static final Logger LOGGER = LogManager.getLogger();
-	private Utils utils;
 	
 	@Override
 	public Order_Item modelFromResultSet(ResultSet resultSet) throws SQLException {
@@ -27,13 +26,32 @@ public class Order_ItemDAO implements Dao<Order_Item> {
 		Long quantity = resultSet.getLong("quantity");
 		return new Order_Item(id, order_id, item_id, quantity);
 	}
+	
+	public String getPrice(Long order_id) {
+		try (Connection connection = DBUtils.getInstance().getConnection();
+				PreparedStatement statement = connection.prepareStatement("SELECT SUM(I.price*OI.quantity) FROM orders_items OI JOIN items I ON OI.item_id=I.id WHERE order_id = ?");) {
+			statement.setLong(1, order_id);
+			try (ResultSet resultSet = statement.executeQuery();) {
+				resultSet.next();
+				String sum = resultSet.getString(1);
+				return sum;
+			}
+		} catch (SQLException e) {
+			LOGGER.debug(e);
+			LOGGER.error(e.getMessage());
+		}
+		return null;
+	}
 
 	@Override
 	public List<Order_Item> readAll() {
-		LOGGER.info("Please enter order ID:");
-		Long order_id = utils.getLong();
+		Long order_id;
+		try (Scanner scanObject = new Scanner(System.in)) {
+			System.out.println("Please enter first number: ");
+			order_id = scanObject.nextLong();
+		}
 		try (Connection connection = DBUtils.getInstance().getConnection();
-				PreparedStatement statement = connection.prepareStatement("SELECT * FROM order_items WHERE order_id = ?");) {
+				PreparedStatement statement = connection.prepareStatement("SELECT * FROM orders_items WHERE order_id = ?");) {
 			statement.setLong(1, order_id);
 			List<Order_Item> order_items = new ArrayList<>();
 			try (ResultSet resultSet = statement.executeQuery();) {
@@ -41,6 +59,7 @@ public class Order_ItemDAO implements Dao<Order_Item> {
 					order_items.add(modelFromResultSet(resultSet));
 				}
 			}
+			LOGGER.info("Total price for order " + order_id + " = £" + getPrice(order_id));
 			return order_items;
 		} catch (SQLException e) {
 			LOGGER.debug(e);
@@ -52,7 +71,7 @@ public class Order_ItemDAO implements Dao<Order_Item> {
 	public Order_Item readLatest() {
 		try (Connection connection = DBUtils.getInstance().getConnection();
 				Statement statement = connection.createStatement();
-				ResultSet resultSet = statement.executeQuery("SELECT * FROM order_items ORDER BY id DESC LIMIT 1");) {
+				ResultSet resultSet = statement.executeQuery("SELECT * FROM orders_items ORDER BY id DESC LIMIT 1");) {
 			resultSet.next();
 			return modelFromResultSet(resultSet);
 		} catch (Exception e) {
@@ -64,12 +83,16 @@ public class Order_ItemDAO implements Dao<Order_Item> {
 
 	@Override
 	public Order_Item read(Long id) {
-		LOGGER.info("Please enter order ID:");
-		Long order_id = utils.getLong();
-		LOGGER.info("Please enter item ID:");
-		Long item_id = utils.getLong();
+		Long order_id;
+		Long item_id;
+		try (Scanner scanObject = new Scanner(System.in)) {
+			System.out.println("Please enter order id: ");
+			order_id = scanObject.nextLong();
+			System.out.println("Please enter item id: ");
+			item_id = scanObject.nextLong();
+		}
 		try (Connection connection = DBUtils.getInstance().getConnection();
-				PreparedStatement statement = connection.prepareStatement("SELECT * FROM order_items WHERE order_id = ? AND item_id = ?");) {
+				PreparedStatement statement = connection.prepareStatement("SELECT * FROM orders_items WHERE order_id = ? AND item_id = ?");) {
 			statement.setLong(1, order_id);
 			statement.setLong(2, item_id);
 			try (ResultSet resultSet = statement.executeQuery();) {
@@ -87,7 +110,7 @@ public class Order_ItemDAO implements Dao<Order_Item> {
 	public Order_Item create(Order_Item t) {
 		try (Connection connection = DBUtils.getInstance().getConnection();
 				PreparedStatement statement = connection
-						.prepareStatement("INSERT INTO order_items(order_id, item_id, quantity) VALUES (?, ?, ?)");) {
+						.prepareStatement("INSERT INTO orders_items(order_id, item_id, quantity) VALUES (?, ?, ?)");) {
 			statement.setLong(1, t.getorder_id());
 			statement.setLong(2, t.getitem_id());
 			statement.setLong(3, t.getquantity());
@@ -102,16 +125,31 @@ public class Order_ItemDAO implements Dao<Order_Item> {
 
 	@Override
 	public Order_Item update(Order_Item t) {
-		// TODO Auto-generated method stub
+		try (Connection connection = DBUtils.getInstance().getConnection();
+				PreparedStatement statement = connection
+						.prepareStatement("UPDATE orders_items SET order_id, item_id, quantity WHERE id = ?");) {
+			statement.setLong(1, t.getorder_id());
+			statement.setLong(2, t.getitem_id());
+			statement.setLong(3, t.getquantity());
+			statement.setLong(4, t.getId());
+			statement.executeUpdate();
+			return read(t.getId());
+		} catch (Exception e) {
+			LOGGER.debug(e);
+			LOGGER.error(e.getMessage());
+		}
 		return null;
 	}
 
 	@Override
 	public int delete(long id) {
-		LOGGER.info("Please enter item ID:");
-		Long item_id = utils.getLong();
+		Long item_id;
+		try (Scanner scanObject = new Scanner(System.in)) {
+			System.out.println("Please enter item id: ");
+			item_id = scanObject.nextLong();
+		}
 		try (Connection connection = DBUtils.getInstance().getConnection();
-				PreparedStatement statement = connection.prepareStatement("DELETE FROM orders WHERE order_id = ? AND item_id = ?");) {
+				PreparedStatement statement = connection.prepareStatement("DELETE FROM orders_items WHERE order_id = ? AND item_id = ?");) {
 			statement.setLong(1, id);
 			statement.setLong(2, item_id);
 			return statement.executeUpdate();
