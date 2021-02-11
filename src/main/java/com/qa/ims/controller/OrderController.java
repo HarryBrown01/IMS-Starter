@@ -25,7 +25,7 @@ public class OrderController implements CrudController<Order> {
 
 	@Override
 	public List<Order> readAll() {
-		LOGGER.info("Create ORDER or add ITEM to order");
+		LOGGER.info("Read ORDER or ITEMs within an order");
 		String answer = utils.getString().toLowerCase();
 		switch (answer) {
 		case "order":

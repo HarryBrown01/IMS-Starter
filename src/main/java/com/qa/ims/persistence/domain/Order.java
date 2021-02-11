@@ -3,7 +3,6 @@ package com.qa.ims.persistence.domain;
 public class Order {
 	private Long id;
 	private Long customer_id;
-	private Long totalcost;
 
 	public Order(Long customer_id) {
 		this.setcustomer_id(customer_id);
@@ -28,10 +27,6 @@ public class Order {
 
 	public void setcustomer_id(Long customer_id) {
 		this.customer_id = customer_id;
-	}
-	
-	public Long gettotalcost() {
-		return totalcost;
 	}
 	
 	@Override
