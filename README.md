@@ -1,4 +1,3 @@
-Coverage: 34%
 IMS - Starter
 
 Creating A program for a commerce business where the program can add, update and delete information for customers, items and orders.
