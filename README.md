@@ -1,7 +1,7 @@
 Coverage: 34%
-# Project Title
+IMS - Starter
 
-One Paragraph of project description goes here
+Creating A program for a commerce business where the program can add, update and delete information for customers, items and orders.
 
 ## Getting Started
 
